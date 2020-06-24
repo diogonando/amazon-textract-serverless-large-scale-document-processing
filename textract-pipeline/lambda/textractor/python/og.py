@@ -38,6 +38,7 @@ class OutputGenerator:
         self.saveItem(self.documentId, "page-{}-TextInReadingOrder".format(p), opath)
 
     def _outputForm(self, page, p):
+
         csvData = []
         for field in page.form.fields:
             csvItem  = []
@@ -54,6 +55,25 @@ class OutputGenerator:
         opath = "{}page-{}-forms.csv".format(self.outputPath, p)
         S3Helper.writeCSV(csvFieldNames, csvData, self.bucketName, opath)
         self.saveItem(self.documentId, "page-{}-Forms".format(p), opath)
+
+    def _outputFullTable(self,pages):
+        csvData = []
+        for page in self.document.pages:
+            for table in page.tables:
+                csvRow = []
+                #csvRow.append("Table")
+                csvData.append(csvRow)
+                for row in table.rows:
+                    csvRow  = []
+                    for cell in row.cells:
+                        csvRow.append(cell.text)
+                    csvData.append(csvRow)
+                csvData.append([])
+                csvData.append([])
+
+        opath = "{}page-{}-tables.csv".format(self.outputPath, 'Full')
+        S3Helper.writeCSVRaw(csvData, self.bucketName, opath)
+        #self.saveItem(self.documentId, "page-{}-Tables".format(p), opath)
 
     def _outputTable(self, page, p):
 
@@ -105,3 +125,7 @@ class OutputGenerator:
                 self._outputTable(page, p)
 
             p = p + 1
+        if(self.tables):
+            self._outputFullTable(self.document.pages)
+
+
